@@ -1,13 +1,12 @@
-// Went through expressjs, remix and axum , they usually store common headers so i am gonna do to that do
-use std::collections::HashMap;
+/// Went through expressjs, remix and axum , they usually store common headers so i am gonna do that doo
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum HeaderName {
     Accept,
     AcceptEncoding,
     AcceptLanguage,
-    Authorization,
     CacheControl,
+    Authorization,
     Connection,
     ContentEncoding,
     ContentLength,
