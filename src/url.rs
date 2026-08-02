@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use crate::parser::HttpError;
 
+/// This struct is only meant to be read only
+#[derive(Debug)]
 pub struct URL {
     scheme: Option<String>,
     host: Option<String>,
@@ -73,6 +75,25 @@ impl URL {
             query_params,
             fragment: fragment,
         })
+    }
+
+    pub fn get_scheme(&self) -> Option<&str> {
+        self.scheme.as_ref().map(|s| s.as_str())
+    }
+    pub fn get_host(&self) -> Option<&str> {
+        self.host.as_ref().map(|s| s.as_str())
+    }
+    pub fn get_port_number(&self) -> Option<u16> {
+        self.port_number
+    }
+    pub fn get_path(&self) -> &str {
+        &self.path
+    }
+    pub fn get_query_params(&self) -> Option<&HashMap<String, String>> {
+        self.query_params.as_ref()
+    }
+    pub fn get_fragments(&self) -> Option<&str> {
+        self.fragment.as_ref().map(|s| s.as_str())
     }
 }
 

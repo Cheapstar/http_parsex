@@ -2,7 +2,7 @@
 //!
 //!
 
-mod headers;
+pub mod headers;
 pub mod parser;
 mod url;
 

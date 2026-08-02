@@ -140,19 +140,19 @@ impl TransferEncodingValue {
 }
 
 #[derive(Debug)]
-pub enum HeaderParseError {
+pub enum HeaderError {
     MissingColon(String),
     EmptyName(String),
 }
 
 /// Parse a single raw header line like "Content-Type: application/json"
-pub fn parse_header_line(line: &str) -> Result<(HeaderName, HeaderValue), HeaderParseError> {
+pub fn parse_header_line(line: &str) -> Result<(HeaderName, HeaderValue), HeaderError> {
     let (raw_name, raw_value) = line
         .split_once(':')
-        .ok_or_else(|| HeaderParseError::MissingColon(line.to_owned()))?;
+        .ok_or_else(|| HeaderError::MissingColon(line.to_owned()))?;
 
     if raw_name.trim().is_empty() {
-        return Err(HeaderParseError::EmptyName(line.to_owned()));
+        return Err(HeaderError::EmptyName(line.to_owned()));
     }
 
     let name = HeaderName::from_str(raw_name);

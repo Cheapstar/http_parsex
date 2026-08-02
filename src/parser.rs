@@ -1,3 +1,10 @@
+use std::collections::HashMap;
+
+use crate::{
+    headers::{HeaderError, HeaderName, HeaderValue},
+    url::URL,
+};
+
 #[derive(Debug)]
 pub enum METHOD {
     GET,
@@ -31,9 +38,16 @@ impl METHOD {
 pub enum HttpError {
     InvalidMethod,
     InvalidURL(String),
+    HeaderError,
 }
 
+/// This struct is only meant to be read only
 #[derive(Debug)]
-pub struct HttpRequest {}
+pub struct HttpRequest {
+    pub method: METHOD,
+    pub url: URL,
+    pub version: String, // change to enum
+    pub headers: HashMap<HeaderName, HeaderValue>,
+}
 
 struct HttpParser {}
