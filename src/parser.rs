@@ -28,6 +28,8 @@ impl METHOD {
     }
 }
 
+#[derive(Debug)]
+
 pub enum HttpError {
     InvalidMethod,
     InvalidURL(String),
