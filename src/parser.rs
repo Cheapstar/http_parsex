@@ -68,21 +68,14 @@ impl HttpParser {
             return Err(HttpParserError::AlreadyComplete);
         }
 
-        let mut new_chunk: Vec<u8> = Vec::new();
-
-        if self.inner.is_empty() {
-            let new_chunk_size = chunk.len();
-            new_chunk.reserve_exact(new_chunk_size);
-            new_chunk.extend_from_slice(chunk);
+        let owned_buf;
+        let new_chunk: &[u8] = if self.inner.is_empty() {
+            chunk
         } else {
-            let new_chunk_size = self.inner.len() + chunk.len();
-            new_chunk.reserve_exact(new_chunk_size);
-
-            new_chunk.extend_from_slice(&self.inner);
-            new_chunk.extend_from_slice(chunk);
-
-            self.inner.clear();
-        }
+            self.inner.extend_from_slice(chunk);
+            owned_buf = std::mem::take(&mut self.inner);
+            &owned_buf
+        };
 
         let mut index: usize = 0;
 

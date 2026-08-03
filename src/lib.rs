@@ -2,8 +2,6 @@
 //! It parses the "start line" and "headers" and returns the body if included in chunk.
 //! It uses FINITE STATE MACHINE , rather than requiring the entire body to be loaded into memory up front.
 //! Small parts are buffered in memory, and as soon as any data is processed
-//! it can be retrieved via get_processed_chunk continuously.
-//!
 //!
 //! Parse is done by continuously calling `[parse]` until all the bytes are given to be parsed.
 //! Parsing is finished when vector is returned (could be empty as well).
@@ -22,7 +20,7 @@
 //!     println!("Request: {:?}", req);
 //! ```
 //!
-//! //! # Errors
+//! # Errors
 //!
 //! Parsing failures are reported via [`HttpParserError`].
 
