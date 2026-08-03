@@ -1,4 +1,4 @@
-# HttpParser
+# http-parsex
 
 An incremental, streaming HTTP/1.x request parser written in Rust.
 
