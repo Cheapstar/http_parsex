@@ -24,6 +24,6 @@
 //!
 //! Parsing failures are reported via [`HttpParserError`].
 
-mod headers;
+pub mod headers;
 pub mod parser;
-mod url;
+pub mod url;
