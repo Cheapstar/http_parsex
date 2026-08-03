@@ -4,7 +4,7 @@ An incremental, streaming HTTP/1.x request parser written in Rust.
 
 `HttpParser` is built around a **finite state machine (FSM)**, so it never
 requires the full request to be loaded into memory before parsing begins.
-You feed it bytes as they arrive (e.g. from a TCP socket), and it
+You feed it bytes as they arrive and it
 incrementally parses the **start line** and **headers**, buffering only the
 small, as-yet-incomplete pieces it needs. Once the headers are fully parsed,
 any body bytes present in a chunk are handed back to the caller immediately
@@ -296,7 +296,7 @@ Typed representation of the `Transfer-Encoding` header value.
 
 ## Documentation
 
-Full API documentation is available on [docs.rs](https://docs.rs/chunked_decoder).
+Full API documentation is available on [docs.rs](https://docs.rs/http_parsex).
 
 ## License
 

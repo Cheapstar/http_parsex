@@ -1,6 +1,15 @@
 [package]
-name = "http_parser"
+name = "http_parsex"
 version = "0.1.0"
 edition = "2024"
+description = "An incremental, streaming HTTP/1.x request parser built on a finite state machine."
+license = "Apache-2.0"
+repository = "https://github.com/Cheapstar/http_parsex.git"
+homepage = "https://github.com/Cheapstar/http_parsex.git"
+readme = "README.md"
+keywords = ["http", "parser", "streaming", "fsm", "request"]
+categories = ["parser-implementations", "network-programming", "web-programming::http-server"]
+rust-version = "1.85"  
+documentation = "https://docs.rs/http_parsex"
 
 [dependencies]
