@@ -2,7 +2,19 @@ use std::collections::HashMap;
 
 use crate::parser::HttpParserError;
 
-/// This struct is only meant to be read only
+///  Represent the different component of URL.
+///     1. scheme : protocol used (for our case it is http .)
+///     2. host : subdomain, domain , top-level domain has been combine into one `host`.
+///     3. port_number
+///     4. path
+///     5. query_params
+///     6. fragment
+///
+///  * Anatomy : https://www.geeksforgeeks.org/computer-networks/components-of-a-url/
+///     
+///     subdomain, domain , top-level domain has been combine into one `host`.
+///
+/// NOTE : This struct is only meant to be read only , since it is input
 #[derive(Debug)]
 pub struct URL {
     scheme: Option<String>,
@@ -14,6 +26,15 @@ pub struct URL {
 }
 
 impl URL {
+    /// Parse the unparsed_url string and returns the `URL` instance.
+    ///
+    /// # Arguments
+    ///     * `unparsed_url` : unparsed string.
+    /// # Returns
+    ///     `URL` instance
+    ///
+    /// # Errors
+    ///     `HttpParserError`
     pub fn parse(unparsed_url: &str) -> Result<Self, HttpParserError> {
         // I am thinking of parsing it in reverse that would be easy
 
@@ -80,6 +101,7 @@ impl URL {
     pub fn get_scheme(&self) -> Option<&str> {
         self.scheme.as_ref().map(|s| s.as_str())
     }
+
     pub fn get_host(&self) -> Option<&str> {
         self.host.as_ref().map(|s| s.as_str())
     }

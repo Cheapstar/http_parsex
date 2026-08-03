@@ -1,38 +1,11 @@
 use std::collections::HashMap;
 
 use crate::{
-    headers::{HeaderName, HeaderValue, parse_header_line},
+    headers::{HeaderName, HeaderValue, HttpRequest, METHOD, parse_header_line},
     url::URL,
 };
 
-#[derive(Debug, PartialEq)]
-pub enum METHOD {
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    PATCH,
-    OPTIONS,
-    CONNECT,
-    TRACE,
-}
-
-impl METHOD {
-    fn from_str(s: &str) -> Result<METHOD, HttpParserError> {
-        match s.to_ascii_lowercase().as_str() {
-            "get" => Ok(METHOD::GET),
-            "post" => Ok(METHOD::POST),
-            "put" => Ok(METHOD::PUT),
-            "patch" => Ok(METHOD::PATCH),
-            "delete" => Ok(METHOD::DELETE),
-            "options" => Ok(METHOD::OPTIONS),
-            "connect" => Ok(METHOD::CONNECT),
-            "trace" => Ok(METHOD::TRACE),
-            _ => Err(HttpParserError::InvalidMethod),
-        }
-    }
-}
-
+/// Error That May Occur During Parsing
 #[derive(Debug, PartialEq)]
 pub enum HttpParserError {
     InvalidMethod,
@@ -46,15 +19,6 @@ pub enum HttpParserError {
     AlreadyComplete,
 }
 
-/// This struct is only meant to be read only
-#[derive(Debug)]
-pub struct HttpRequest {
-    pub method: METHOD,
-    pub url: URL,
-    pub version: String, // might change it to the enum
-    pub headers: HashMap<HeaderName, HeaderValue>,
-}
-
 #[derive(PartialEq)]
 pub enum HttpParserState {
     STARTLINE,
@@ -64,7 +28,18 @@ pub enum HttpParserState {
     DONE,
 }
 
-struct HttpParser {
+/// HttpParser is a incrementally fed parser for HTTP request.
+/// It parses the "start line" and "headers" and returns the body if included in chunk.
+/// It uses FINITE STATE MACHINE , rather than requiring the entire body to be loaded into memory up front.
+/// Small parts are buffered in memory, and as soon as any data is processed
+/// it can be retrieved via get_processed_chunk continuously.
+///
+///
+/// Parse is done by continuously calling `[parse]` until all the bytes are given to be parsed.
+/// Parsing is finished when vector is returned (could be empty as well).
+///
+/// request can be accessed at when either vector is returned using `[get_request]`.
+pub struct HttpParser {
     inner: Vec<u8>,
     state: HttpParserState,
     req: Option<HttpRequest>, // Option is only because we need it during parsing
@@ -171,10 +146,10 @@ impl HttpParser {
 
                 let header_str = str::from_utf8(&new_chunk[index..index + newline_index]).unwrap();
                 let (key, value) =
-                    parse_header_line(header_str).map_err(|e| HttpParserError::InvalidHeader)?;
+                    parse_header_line(header_str).map_err(|_| HttpParserError::InvalidHeader)?;
 
                 if let Some(ref mut req) = self.req {
-                    req.headers.insert(key, value);
+                    req.get_headers_mut().insert(key, value);
                 }
 
                 index += newline_index;
@@ -184,6 +159,7 @@ impl HttpParser {
         Ok(None)
     }
 
+    /// Returns the Parsed `HttpRequest` instance
     pub fn get_request(&mut self) -> HttpRequest {
         self.req.take().unwrap()
     }
@@ -194,8 +170,6 @@ fn find_crlf(chunk: &[u8]) -> Option<usize> {
 }
 
 fn parse_startline(chunk: &[u8]) -> Result<HttpRequest, HttpParserError> {
-    let mut rest = &[0u8];
-
     if !chunk.is_ascii() {
         return Err(HttpParserError::InvalidCharacterDetected);
     }
@@ -227,16 +201,11 @@ fn parse_startline(chunk: &[u8]) -> Result<HttpRequest, HttpParserError> {
 
     let headers: HashMap<HeaderName, HeaderValue> = HashMap::new();
 
-    Ok(HttpRequest {
-        method,
-        url,
-        version,
-        headers,
-    })
+    Ok(HttpRequest::new(method, url, version, headers))
 }
 
 #[cfg(test)]
-mod incremental_parser_tests {
+mod tests {
     use super::*;
     use std::str;
 
@@ -441,10 +410,10 @@ mod incremental_parser_tests {
 
         let req = parser.get_request();
         println!("Request after fragmented feed: {:?}", req);
-        assert_eq!(req.method, METHOD::POST);
-        assert_eq!(req.url.get_path(), "/api/users");
+        assert_eq!(*req.get_method(), METHOD::POST);
+        assert_eq!(req.get_url().get_path(), "/api/users");
         assert_eq!(
-            req.headers.get(&HeaderName::ContentLength),
+            req.get_headers().get(&HeaderName::ContentLength),
             Some(&HeaderValue::ContentLength(25))
         );
     }

@@ -1,5 +1,89 @@
+use std::collections::HashMap;
+
+use crate::{parser::HttpParserError, url::URL};
+
 /// Went through expressjs, remix and axum , they usually store common headers so i am gonna do that doo
 
+/// HttpRequest represent the different components of HttpRequest.
+///     1. method : GET | POST | PUT | PATCH | ...
+///     2. url
+///     3. version
+///     4. headers
+///
+/// NOTE : This struct is only meant to be read only
+#[derive(Debug)]
+pub struct HttpRequest {
+    method: METHOD,
+    url: URL,
+    version: String, // might change it to the enum
+    headers: HashMap<HeaderName, HeaderValue>,
+}
+
+impl HttpRequest {
+    pub(crate) fn new(
+        method: METHOD,
+        url: URL,
+        version: String,
+        headers: HashMap<HeaderName, HeaderValue>,
+    ) -> Self {
+        HttpRequest {
+            method,
+            url,
+            version,
+            headers,
+        }
+    }
+
+    pub(crate) fn get_mut(&mut self) -> &mut Self {
+        self
+    }
+    pub fn get_method(&self) -> &METHOD {
+        &self.method
+    }
+    pub fn get_url(&self) -> &URL {
+        &self.url
+    }
+    pub fn get_version(&self) -> &str {
+        &self.version
+    }
+    pub fn get_headers(&self) -> &HashMap<HeaderName, HeaderValue> {
+        &self.headers
+    }
+
+    pub(crate) fn get_headers_mut(&mut self) -> &mut HashMap<HeaderName, HeaderValue> {
+        &mut self.headers
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum METHOD {
+    GET,
+    POST,
+    PUT,
+    DELETE,
+    PATCH,
+    OPTIONS,
+    CONNECT,
+    TRACE,
+}
+
+impl METHOD {
+    pub fn from_str(s: &str) -> Result<METHOD, HttpParserError> {
+        match s.to_ascii_lowercase().as_str() {
+            "get" => Ok(METHOD::GET),
+            "post" => Ok(METHOD::POST),
+            "put" => Ok(METHOD::PUT),
+            "patch" => Ok(METHOD::PATCH),
+            "delete" => Ok(METHOD::DELETE),
+            "options" => Ok(METHOD::OPTIONS),
+            "connect" => Ok(METHOD::CONNECT),
+            "trace" => Ok(METHOD::TRACE),
+            _ => Err(HttpParserError::InvalidMethod),
+        }
+    }
+}
+
+/// Bunch of Common headers Saved (Seems like industry Practice)
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum HeaderName {
     Accept,
@@ -14,7 +98,6 @@ pub enum HeaderName {
     Cookie,
     Host,
     Location,
-    SetCookie,
     TransferEncoding,
     Upgrade,
     UserAgent,
@@ -22,6 +105,7 @@ pub enum HeaderName {
 }
 
 impl HeaderName {
+    /// Takes in header_name as string and returns the instance of `HeaderName`.
     pub fn from_str(s: &str) -> Self {
         match s.trim().to_ascii_lowercase().as_str() {
             "accept" => Self::Accept,
@@ -36,7 +120,6 @@ impl HeaderName {
             "cookie" => Self::Cookie,
             "host" => Self::Host,
             "location" => Self::Location,
-            "set-cookie" => Self::SetCookie,
             "transfer-encoding" => Self::TransferEncoding,
             "upgrade" => Self::Upgrade,
             "user-agent" => Self::UserAgent,
@@ -45,6 +128,7 @@ impl HeaderName {
     }
 }
 
+/// Some Common Headers Value.
 #[derive(Debug, Clone, PartialEq)]
 pub enum HeaderValue {
     ContentType(ContentType),
@@ -55,6 +139,7 @@ pub enum HeaderValue {
 }
 
 impl HeaderValue {
+    /// Returns `HeaderValue` as per the `HeaderName`
     pub fn parse(name: &HeaderName, raw: &str) -> Self {
         let trimmed = raw.trim();
         match name {
@@ -72,6 +157,7 @@ impl HeaderValue {
     }
 }
 
+/// Value of header `Content-Type`
 #[derive(Debug, Clone, PartialEq)]
 pub enum ContentType {
     TextPlain,
@@ -95,7 +181,6 @@ impl ContentType {
             "application/octet-stream" => Self::ApplicationOctetStream,
             "application/x-www-form-urlencoded" => Self::ApplicationFormUrlEncoded,
             "multipart/form-data" => {
-                // look for boundary=... in remaining params
                 let boundary = parts
                     .find_map(|p| p.trim().strip_prefix("boundary="))
                     .map(|b| b.trim_matches('"').to_owned());
@@ -139,13 +224,13 @@ impl TransferEncodingValue {
 }
 
 #[derive(Debug)]
-pub enum HeaderError {
+pub(crate) enum HeaderError {
     MissingColon(String),
     EmptyName(String),
 }
 
 /// Parse a single raw header line like "Content-Type: application/json"
-pub fn parse_header_line(line: &str) -> Result<(HeaderName, HeaderValue), HeaderError> {
+pub(crate) fn parse_header_line(line: &str) -> Result<(HeaderName, HeaderValue), HeaderError> {
     let (raw_name, raw_value) = line
         .split_once(':')
         .ok_or_else(|| HeaderError::MissingColon(line.to_owned()))?;
