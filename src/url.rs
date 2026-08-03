@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::parser::HttpError;
+use crate::parser::HttpParserError;
 
 /// This struct is only meant to be read only
 #[derive(Debug)]
@@ -14,11 +14,11 @@ pub struct URL {
 }
 
 impl URL {
-    pub fn parse(unparsed_url: &str) -> Result<Self, HttpError> {
+    pub fn parse(unparsed_url: &str) -> Result<Self, HttpParserError> {
         // I am thinking of parsing it in reverse that would be easy
 
         if unparsed_url.is_empty() {
-            return Err(HttpError::InvalidURL(unparsed_url.to_string()));
+            return Err(HttpParserError::InvalidURL(unparsed_url.to_string()));
         }
         let mut rest = unparsed_url;
         // search for fragment
@@ -60,7 +60,7 @@ impl URL {
                 Some((h, p)) => {
                     let port = p
                         .parse::<u16>()
-                        .map_err(|_| HttpError::InvalidURL(unparsed_url.to_string()))?;
+                        .map_err(|_| HttpParserError::InvalidURL(unparsed_url.to_string()))?;
                     (Some(h.to_owned()), Some(port))
                 }
                 None => (Some(authority.to_owned()), None),
