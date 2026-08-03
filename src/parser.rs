@@ -20,7 +20,7 @@ pub enum HttpParserError {
 }
 
 #[derive(PartialEq)]
-pub enum HttpParserState {
+enum HttpParserState {
     STARTLINE,
     HEADER,
     /// these kind of states becomes necessary due to uneven chunks

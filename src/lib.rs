@@ -1,4 +1,4 @@
-//! HttpParser is a incrementally fed parser for HTTP request.
+//! http-parsex is a incrementally fed parser for HTTP request.
 //! It parses the "start line" and "headers" and returns the body if included in chunk.
 //! It uses FINITE STATE MACHINE , rather than requiring the entire body to be loaded into memory up front.
 //! Small parts are buffered in memory, and as soon as any data is processed
