@@ -1,6 +1,6 @@
 [package]
 name = "http_parsex"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
 description = "An incremental, streaming HTTP/1.x request parser built on a finite state machine."
 license = "Apache-2.0"
