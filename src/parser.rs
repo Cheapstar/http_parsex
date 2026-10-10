@@ -8,14 +8,14 @@ use crate::{
 /// Error That May Occur During Parsing
 #[derive(Debug, PartialEq)]
 pub enum HttpParserError {
-    InvalidMethod,
+    InvalidMethod(String),
     InvalidURL(String),
-    HeaderError,
-    InvalidStartLine,
-    InvalidCharacterDetected,
-    InvalidHttpVersion,
+    HeaderError(String),
+    InvalidStartLine(String),
+    InvalidCharacterDetected(String),
+    InvalidHttpVersion(String),
     InvalidRequestFormat,
-    InvalidHeader,
+    InvalidHeader(String),
     AlreadyComplete,
 }
 
@@ -127,7 +127,18 @@ impl HttpParser {
                 let newline_index = newline_exists.unwrap();
 
                 if !new_chunk[index..index + newline_index].is_ascii() {
-                    return Err(HttpParserError::InvalidCharacterDetected);
+                    let invalid_characters =
+                        String::from_utf8(new_chunk[index..index + newline_index].to_vec());
+
+                    let invalid_char_str = match invalid_characters {
+                        Ok(e) => e,
+                        Err(_) => return Err(HttpParserError::InvalidRequestFormat),
+                    };
+
+                    return Err(HttpParserError::InvalidCharacterDetected(format!(
+                        "{}",
+                        invalid_char_str
+                    )));
                 }
 
                 if newline_index == 0 {
@@ -138,8 +149,8 @@ impl HttpParser {
                 }
 
                 let header_str = str::from_utf8(&new_chunk[index..index + newline_index]).unwrap();
-                let (key, value) =
-                    parse_header_line(header_str).map_err(|_| HttpParserError::InvalidHeader)?;
+                let (key, value) = parse_header_line(header_str)
+                    .map_err(|_| HttpParserError::InvalidHeader(header_str.to_owned()))?;
 
                 if let Some(ref mut req) = self.req {
                     req.get_headers_mut().insert(key, value);
@@ -164,7 +175,16 @@ fn find_crlf(chunk: &[u8]) -> Option<usize> {
 
 fn parse_startline(chunk: &[u8]) -> Result<HttpRequest, HttpParserError> {
     if !chunk.is_ascii() {
-        return Err(HttpParserError::InvalidCharacterDetected);
+        let invalid_characters = String::from_utf8(chunk.to_vec());
+
+        let invalid_char_str = match invalid_characters {
+            Ok(e) => e,
+            Err(_) => return Err(HttpParserError::InvalidRequestFormat),
+        };
+        return Err(HttpParserError::InvalidCharacterDetected(format!(
+            "{}",
+            invalid_char_str
+        )));
     }
 
     let mut unparsed_chunk = str::from_utf8(chunk).unwrap();
@@ -173,18 +193,20 @@ fn parse_startline(chunk: &[u8]) -> Result<HttpRequest, HttpParserError> {
         unparsed_chunk = after;
         before
     } else {
-        return Err(HttpParserError::InvalidStartLine);
+        return Err(HttpParserError::InvalidStartLine(unparsed_chunk.to_owned()));
     };
 
     let url_str = if let Some((before, after)) = unparsed_chunk.split_once(' ') {
         unparsed_chunk = after;
         before
     } else {
-        return Err(HttpParserError::InvalidStartLine);
+        return Err(HttpParserError::InvalidStartLine(unparsed_chunk.to_owned()));
     };
 
     if !unparsed_chunk.eq("HTTP/1.1") {
-        return Err(HttpParserError::InvalidHttpVersion);
+        return Err(HttpParserError::InvalidHttpVersion(
+            unparsed_chunk.to_owned(),
+        ));
     }
 
     let version = unparsed_chunk.to_owned();

@@ -78,7 +78,7 @@ impl METHOD {
             "options" => Ok(METHOD::OPTIONS),
             "connect" => Ok(METHOD::CONNECT),
             "trace" => Ok(METHOD::TRACE),
-            _ => Err(HttpParserError::InvalidMethod),
+            _ => Err(HttpParserError::InvalidMethod(s.to_owned())),
         }
     }
 }

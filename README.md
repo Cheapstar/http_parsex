@@ -26,7 +26,7 @@ Or add it to your `Cargo.toml` manually:
 
 ```toml
 [dependencies]
-http_parsex = "0.1"
+http_parsex = "0.2"
 ```
 
 ## How it works
@@ -36,10 +36,10 @@ http_parsex = "0.1"
               │                    │                    │
               ▼                    ▼                    ▼
        ┌─────────────────────────────────────────────────────┐
-       │                     HttpParser (FSM)                 │
-       │                                                       │
-       │   StartLine ──► Headers ──► (Body passthrough)        │
-       │                                                       │
+       │                     HttpParser (FSM)                │
+       │                                                     │
+       │   StartLine ──► Headers ──► (Body passthrough)      │
+       │                                                     │
        └─────────────────────────────────────────────────────┘
               │                    │                    │
               ▼                    ▼                    ▼
